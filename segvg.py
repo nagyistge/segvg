@@ -8,14 +8,6 @@ mr = sys.argv[1]
 mr = "brain_parcellation_mcinet_basc_asym_111clusters.nii.gz"
 nii = nibabel.load(mr)
 
-def is_contour_bad(c):
-	# approximate the contour
-	peri = cv2.arcLength(c, True)
-	approx = cv2.approxPolyDP(c, 0.02 * peri, True)
- 
-	# the contour is 'bad' if it is not a rectangle
-	return not len(approx) == 4
-
 # Take some random slice (could be user selected)
 slice = nii.get_data()[:,:,20]
 
