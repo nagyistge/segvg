@@ -326,18 +326,18 @@ function createPaperScript(element) {
 			list: [
 				[text ? 4 : 3, text || ''],
 				[1, ''],
-				[4, '<b>Note:</b> You can view and even edit<br>the source right here in the browser'],
+				[4, ''],
 				[1, ''],
-				[3, 'To do so, simply press the <b>Source</b> button &rarr;']
+				[3, '']
 			]
 		}, {
 			index: 0,
 			indexIfEdited: 3, // Skip first sentence if user has already edited code
 			list: [
 				[4, ''],
-				[3, 'Why don\'t you try editing the code?'],
+				[3, ''],
 				[1, ''],
-				[4, 'To run it again, simply press press <b>Run</b> &rarr;']
+				[4, '']
 			]
 		}];
 		var timer,

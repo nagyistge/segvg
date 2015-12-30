@@ -1,5 +1,5 @@
-
 import nibabel
+import pandas
 import sys
 import cv2
 from scipy.spatial.distance import pdist
@@ -28,8 +28,7 @@ for value in regions:
     empty = numpy.zeros(nii.shape)
     empty[nii.get_data()==value] = value
     squash = empty.sum(axis=axis) # user can select view
-    #squash = empty[:,:,20]
-
+    
     # Rotate brain depending on view
     if axis==0:
         squash = numpy.rot90(squash,1)
@@ -44,9 +43,19 @@ for value in regions:
     
     if len(cnts)==2:
         # We need to get the center
-        bx,by,bw,bh = cv2.boundingRect(cnt)
+        bx,by,bw,bh = cv2.boundingRect(cnts[1])
+
+        # Use by as a proxy for distance to front of scene
+        if axis == 0:
+            sideview = pandas.DataFrame(empty.sum(axis=1))
+            listy=sideview.sum(axis=1).tolist()
+            # Where is the first nonzero index? (distance to object)
+            opacity = listy.index(filter(lambda x: x!=0, listy)[0])
+            opacity = opacity/float(empty.shape[2])        
+
         new_segment = {"points":[x[0] for x in cnts[1].tolist()],
-                       "center":[bx,by]} # This is actually top corner
+                       "center":[31,8],
+                       "opacity":opacity} # This is actually top corner
         segments.append(new_segment)
 
 
