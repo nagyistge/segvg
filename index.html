@@ -36,6 +36,10 @@
 
 <div class="buttons">
 
+<button class="button" id="export-svg">svg</button>
+
+<button class="button" id="export-json">json</button>
+
 <div class="button run">Source</div>
 
 <div class="explain">
@@ -47,6 +51,58 @@
 </div>
 
 <script type="text/paperscript" canvas="canvas-1">
+
+
+
+// Export Functions
+
+function downloadDataUri(options) {
+
+	if (!options.url)
+
+		options.url = "http://download-data-uri.appspot.com/";
+
+	$('<form method="post" action="' + options.url
+
+		+ '" style="display:none"><input type="hidden" name="filename" value="'
+
+		+ options.filename + '"/><input type="hidden" name="data" value="'
+
+		+ options.data + '"/></form>').appendTo('body').submit().remove();
+
+}
+
+
+
+$('#export-svg').click(function() {
+
+	var svg = paper.project.exportSVG({ asString: true });
+
+	downloadDataUri({
+
+		data: 'data:image/svg+xml;base64,' + btoa(svg),
+
+		filename: 'segvg.svg'
+
+	});
+
+});
+
+
+
+$('#export-json').click(function() {
+
+	var svg = paper.project.exportJSON({ asString: true });
+
+	downloadDataUri({
+
+		data: 'data:image/svg+xml;base64,' + btoa(svg),
+
+		filename: 'segvg.json'
+
+	});
+
+});
 
 
 
@@ -223,8 +279,6 @@ function onMouseDrag(event) {
 	}
 
 }
-
-
 
 </script>
 
