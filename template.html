@@ -1,0 +1,122 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-touch-fullscreen" content="yes"/>
+  <meta name="msapplication-tap-highlight" content="no"/>
+  <link rel="stylesheet" href="assets/css/style.css"/>
+  <script src="assets/js/jquery.js"></script>
+  <script src="assets/js/paper.js"></script>
+  <script src="assets/js/codemirror.js"></script>
+  <script src="assets/js/scripts.js"></script>
+  <title>Segvg: Segmentation to SVG</title>
+</head>
+  <body class="fullscreen">
+<article><div class="paperscript">
+<div class="buttons">
+<div class="button run">Source</div>
+<div class="explain">
+
+</div>
+</div>
+<script type="text/paperscript" canvas="canvas-1">
+
+var hitOptions = {
+    segments: true,
+    stroke: true,
+    fill: true,
+    tolerance: 5
+};
+
+var scalingfactor = 10;
+var segments = {{DATA}}
+
+// Doo eet.
+createPaths();
+
+function createPaths() {
+	for (var i = 0; i < segments.length; i++) {
+		var center = new Size(segments[i].center[0]*scalingfactor,segments[i].center[1]*scalingfactor);
+                var path = createBlob(center, segments[i].points);
+		//var lightness = (Math.random() - 0.5) * 0.4 + 0.4;
+		var hue = Math.random() * 360;
+		//path.fillColor = { hue: hue, saturation: 1, lightness: lightness };
+                path.fillColor = {
+                gradient: {stops: [['white', 0.01], [hue, 0.2], ['black', 1]],
+                           radial: true},
+                           origin: path.position,
+                           destination: path.bounds.rightCenter
+                };
+		path.strokeColor = 'black';
+                path.opacity = 0.5;
+                path.blendMode = 'multiply';
+	};
+}
+
+function createBlob(center, points) {
+	var path = new Path();
+	path.closed = true;
+	for (var i = 0; i < points.length; i++) {
+	    var delta = new Point({x:(points[i][0])*scalingfactor,y:(points[i][1])*scalingfactor});
+	    path.add(center + delta);
+	}
+	path.smooth();
+	return path;
+}
+
+var segment, path;
+var movePath = false;
+function onMouseDown(event) {
+	segment = path = null;
+	var hitResult = project.hitTest(event.point, hitOptions);
+	if (!hitResult)
+		return;
+
+	if (event.modifiers.shift) {
+		if (hitResult.type == 'segment') {
+			hitResult.segment.remove();
+		};
+		return;
+	}
+
+	if (hitResult) {
+		path = hitResult.item;
+		if (hitResult.type == 'segment') {
+			segment = hitResult.segment;
+		} else if (hitResult.type == 'stroke') {
+			var location = hitResult.location;
+			segment = path.insert(location.index + 1, event.point);
+			path.smooth();
+		}
+	}
+	movePath = hitResult.type == 'fill';
+	if (movePath)
+		project.activeLayer.addChild(hitResult.item);
+}
+
+function onMouseMove(event) {
+	project.activeLayer.selected = false;
+	if (event.item)
+		event.item.selected = true;
+}
+
+function onMouseDrag(event) {
+	if (segment) {
+		segment.point += event.delta;
+		path.smooth();
+	} else if (path) {
+		path.position += event.delta;
+	}
+}
+
+</script>
+<div class="canvas">
+<canvas resize="true" id="canvas-1" style="background:black"></canvas>
+</div>
+</div>
+</article>
+  </body>
+</html>

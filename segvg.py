@@ -8,6 +8,7 @@ import numpy
 #mr = sys.argv[1]
 
 mr = "brain_parcellation_mcinet_basc_asym_33clusters.nii.gz"
+axis == 0
 nii = nibabel.load(mr)
 
 # We will squash the image from the top, for each unique value
@@ -17,13 +18,22 @@ regions = numpy.unique(nii.get_data()).tolist()
 regions.pop(regions.index(0))
 
 # We will save a list of segments
-# needs to look like var segments = [{points:[[14, 44], [14, 46],[15, 46],[14, 45],[15, 44],[16, 44],[17, 45],[16, 44]]}]
+# needs to look like var segments = [{
+#                                     points:[[14, 44], [14, 46],[15, 46],[14, 45],[15, 44]]
+#                                     center:[15,19],
+#                                  }]
 segments = []
 
 for value in regions:
     empty = numpy.zeros(nii.shape)
     empty[nii.get_data()==value] = value
-    squash = empty.sum(axis=0) # user can select view
+    squash = empty.sum(axis=axis) # user can select view
+    #squash = empty[:,:,20]
+
+    # Rotate brain depending on view
+    if axis==0:
+        squash = numpy.rot90(squash,1)
+
     squash[squash!=0] = 1      # binarize
     # Can we convert numpy array to grayscale?
     im = numpy.array(squash * 255, dtype = numpy.uint8)  # Note - will need to save mapping 
@@ -32,7 +42,19 @@ for value in regions:
     
     # Note: need way to separate right and left
     
-    # loop over the contours
-    print len(cnts) # should always be 1 or 2 - the first entry is the external contour
-    new_segment = {"points":[x[0] for x in cnts[0].tolist()]}
-    segments.append(new_segment)
+    if len(cnts)==2:
+        # We need to get the center
+        bx,by,bw,bh = cv2.boundingRect(cnt)
+        new_segment = {"points":[x[0] for x in cnts[1].tolist()],
+                       "center":[bx,by]} # This is actually top corner
+        segments.append(new_segment)
+
+
+# Make substitution in template
+filey = open("template.html","r")
+template = "\n".join(filey.readlines())
+filey.close()
+template = template.replace("{{DATA}}",str(segments))
+filey = open("index.html","w")
+filey.writelines(template)
+filey.close()
